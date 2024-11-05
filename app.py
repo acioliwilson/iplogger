@@ -1,12 +1,18 @@
 from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
 import requests
+import os
+from dotenv import load_dotenv
+
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Habilita CORS para todas as rotas
 
 # Chave da API para consulta de IP
-API_KEY = '3bfebc53-25f3-4b22-8510-b4f71736be65'
+# API_KEY = '3bfebc53-25f3-4b22-8510-b4f71736be65'
+API_KEY = os.getenv('API_KEY')
 API_URL = f'https://apiip.net/api/check?accessKey={API_KEY}'
 
 data_store = []

